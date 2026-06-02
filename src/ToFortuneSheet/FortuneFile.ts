@@ -619,7 +619,14 @@ export class FortuneFile {
       }
 
       if (sheet.images != null) {
-        sheetout.images = sheet.images;
+        sheetout.images = Object.entries(sheet.images).map(([id, image]: any) => ({
+          ...image,
+          id,
+          left: image.default?.left ?? 0,
+          top: image.default?.top ?? 0,
+          width: image.default?.width ?? image.originWidth ?? 0,
+          height: image.default?.height ?? image.originHeight ?? 0,
+        }));
       }
 
       if (sheet.dataVerification != null) {

@@ -38,7 +38,7 @@ export function getcellrange(
 
   let sheettxt = "",
     rangetxt = "",
-    sheetIndex = -1;
+    sheetIndex = sheetId;
 
   if (val.length > 1) {
     sheettxt = val[0];
@@ -46,12 +46,12 @@ export function getcellrange(
 
     let si = sheets[sheettxt];
     if (si == null) {
-      sheetIndex = parseInt(sheetId);
+      sheetIndex = sheetId;
     } else {
-      sheetIndex = parseInt(si);
+      sheetIndex = si;
     }
   } else {
-    sheetIndex = parseInt(sheetId);
+    sheetIndex = sheetId;
     rangetxt = val[0];
   }
 
