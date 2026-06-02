@@ -100,7 +100,7 @@ Export support:
 - [Orleans9](https://blog.csdn.net/zinchliang) - [article](https://blog.csdn.net/zinchliang/article/details/120262185)
 
 ## Contribution
-1. Install node v20.17.0
+1. Install node v24
 3. `npm run prepare`
 4. `npm run build-storybook`
 5. `npm run storybook`
