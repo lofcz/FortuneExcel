@@ -24,6 +24,7 @@
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
     "@fortune-sheet/react": "^0.19.2",
+    "jsdom": "^26.1.0",
     "@storybook/addon-essentials": "^7.6.12",
     "@storybook/addon-interactions": "^7.6.12",
     "@storybook/addon-links": "^7.6.12",
@@ -47,6 +48,7 @@
   },
   "scripts": {
     "prepare": "tsc",
+    "test": "npm run prepare && node --test test/transformExcelToFortune.xls_preview.test.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
