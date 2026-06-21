@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
-    "@fortune-sheet/react": "^0.19.2",
+    "@fortune-sheet/react": "^1.0.4",
     "@storybook/addon-essentials": "^7.6.12",
     "@storybook/addon-interactions": "^7.6.12",
     "@storybook/addon-links": "^7.6.12",
@@ -32,6 +32,7 @@
     "@storybook/react-webpack5": "^7.3.2",
     "@storybook/test": "^7.6.12",
     "@types/node": "^20.11.16",
+    "jsdom": "^26.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook": "^7.6.16",
@@ -47,6 +48,7 @@
   },
   "scripts": {
     "prepare": "tsc",
+    "test": "npm run prepare && node --test test/transformExcelToFortune.xls_preview.test.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

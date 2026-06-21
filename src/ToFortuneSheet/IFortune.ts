@@ -57,7 +57,7 @@ export interface IfortuneSheet {
 export interface IfortuneSheetSelection {
   row: number[]; //selection start row and end row
   column: number[]; //selection start column and end column
-  sheetIndex: number;
+  sheetIndex: string;
 }
 
 export interface IfortuneSheetChart {}
