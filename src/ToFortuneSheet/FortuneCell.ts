@@ -30,6 +30,74 @@ import {
   FortuneSheetCellFormat,
 } from "./FortuneBase";
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const SHORT_MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const LONG_MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const SHORT_WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const LONG_WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+type ExcelDateFormatPart = ExcelDateFormatLiteralPart | ExcelDateFormatTokenPart;
+
+interface ExcelDateFormatLiteralPart {
+  type: "literal";
+  value: string;
+}
+
+interface ExcelDateFormatTokenPart {
+  type: "token";
+  token: string;
+  length: number;
+  value: string;
+  elapsed?: boolean;
+}
+
+interface ExcelDateParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  weekday: number;
+  elapsedHours: number;
+  elapsedMinutes: number;
+  elapsedSeconds: number;
+}
+
 export class FortuneSheetCelldata extends FortuneSheetCelldataBase {
   _borderObject: IfortuneSheetborderInfoCellForImp;
   _fomulaRef: string;
@@ -848,11 +916,301 @@ export class FortuneSheetCelldata extends FortuneSheetCelldataBase {
       }
     }
 
+    this.setDateDisplayValue(cellValue);
+
     if (quotePrefix != null) {
       cellValue.qp = parseInt(quotePrefix);
     }
 
     return cellValue;
+  }
+
+  private setDateDisplayValue(cellValue: FortuneSheetCelldataValue) {
+    if (
+      cellValue.ct == null ||
+      cellValue.ct.fa == null ||
+      cellValue.v == null ||
+      (cellValue.ct.t != ST_CellType["Number"] &&
+        cellValue.ct.t != ST_CellType["Date"])
+    ) {
+      return;
+    }
+
+    const numericValue = Number(cellValue.v);
+    if (!isFinite(numericValue)) {
+      return;
+    }
+
+    try {
+      const formattedDate = this.formatExcelDate(cellValue.ct.fa, numericValue);
+      if (formattedDate == null) {
+        return;
+      }
+
+      cellValue.m = formattedDate;
+      cellValue.ct.t = ST_CellType["Date"];
+    } catch (e) {
+      return;
+    }
+  }
+
+  private formatExcelDate(format: string, serialValue: number): string | null {
+    const section = this.getFirstFormatSection(format);
+    const parts = this.tokenizeDateFormat(section);
+
+    if (!this.hasDateFormatToken(parts)) {
+      return null;
+    }
+
+    const dateParts = this.getExcelDateParts(serialValue);
+    const use12HourClock = /A\/P|AM\/PM/i.test(section);
+    let result = "";
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (part.type == "literal") {
+        result += part.value;
+        continue;
+      }
+
+      result += this.formatDateToken(
+        part,
+        this.getDateToken(parts, i, -1),
+        this.getDateToken(parts, i, 1),
+        dateParts,
+        use12HourClock
+      );
+    }
+
+    return result;
+  }
+
+  private getFirstFormatSection(format: string): string {
+    let inQuote = false;
+
+    for (let i = 0; i < format.length; i++) {
+      const char = format.charAt(i);
+      if (char == "\\") {
+        i++;
+      } else if (char == "\"") {
+        inQuote = !inQuote;
+      } else if (char == ";" && !inQuote) {
+        return format.slice(0, i);
+      }
+    }
+
+    return format;
+  }
+
+  private tokenizeDateFormat(format: string): ExcelDateFormatPart[] {
+    const parts: ExcelDateFormatPart[] = [];
+
+    for (let i = 0; i < format.length; i++) {
+      const char = format.charAt(i);
+      const lowerChar = char.toLowerCase();
+
+      if (char == "\"") {
+        let value = "";
+        i++;
+        while (i < format.length && format.charAt(i) != "\"") {
+          value += format.charAt(i);
+          i++;
+        }
+        if (value.length > 0) {
+          parts.push({ type: "literal", value });
+        }
+      } else if (char == "\\") {
+        if (i + 1 < format.length) {
+          parts.push({ type: "literal", value: format.charAt(i + 1) });
+          i++;
+        }
+      } else if (char == "_" || char == "*") {
+        i++;
+      } else if (char == "[") {
+        const endIndex = format.indexOf("]", i + 1);
+        if (endIndex == -1) {
+          parts.push({ type: "literal", value: char });
+          continue;
+        }
+
+        const bracketValue = format.slice(i + 1, endIndex).toLowerCase();
+        if (/^[hms]+$/.test(bracketValue)) {
+          parts.push({
+            type: "token",
+            token: bracketValue.charAt(0),
+            length: bracketValue.length,
+            value: bracketValue,
+            elapsed: true,
+          });
+        }
+        i = endIndex;
+      } else if (/^AM\/PM/i.test(format.slice(i))) {
+        parts.push({ type: "token", token: "ampm", length: 5, value: "AM/PM" });
+        i += 4;
+      } else if (/^A\/P/i.test(format.slice(i))) {
+        parts.push({ type: "token", token: "ampm", length: 3, value: "A/P" });
+        i += 2;
+      } else if (/[ymdhs]/.test(lowerChar)) {
+        let value = char;
+        while (
+          i + 1 < format.length &&
+          format.charAt(i + 1).toLowerCase() == lowerChar
+        ) {
+          value += format.charAt(i + 1);
+          i++;
+        }
+        parts.push({
+          type: "token",
+          token: lowerChar,
+          length: value.length,
+          value,
+        });
+      } else {
+        parts.push({ type: "literal", value: char });
+      }
+    }
+
+    return parts;
+  }
+
+  private hasDateFormatToken(parts: ExcelDateFormatPart[]): boolean {
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].type == "token") {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private getDateToken(
+    parts: ExcelDateFormatPart[],
+    index: number,
+    direction: number
+  ): ExcelDateFormatTokenPart | null {
+    for (let i = index + direction; i >= 0 && i < parts.length; i += direction) {
+      const part = parts[i];
+      if (part.type == "token") {
+        return part;
+      }
+    }
+
+    return null;
+  }
+
+  private formatDateToken(
+    part: ExcelDateFormatTokenPart,
+    previousToken: ExcelDateFormatTokenPart | null,
+    nextToken: ExcelDateFormatTokenPart | null,
+    dateParts: ExcelDateParts,
+    use12HourClock: boolean
+  ): string {
+    if (part.token == "ampm") {
+      if (part.value.toUpperCase() == "A/P") {
+        return dateParts.hour < 12 ? "A" : "P";
+      }
+      return dateParts.hour < 12 ? "AM" : "PM";
+    }
+
+    if (part.token == "y") {
+      if (part.length <= 2) {
+        return this.pad(dateParts.year % 100, 2);
+      }
+      return this.pad(dateParts.year, part.length);
+    }
+
+    if (part.token == "d") {
+      if (part.length == 1) {
+        return dateParts.day.toString();
+      }
+      if (part.length == 2) {
+        return this.pad(dateParts.day, 2);
+      }
+      if (part.length == 3) {
+        return SHORT_WEEKDAY_NAMES[dateParts.weekday];
+      }
+      return LONG_WEEKDAY_NAMES[dateParts.weekday];
+    }
+
+    if (part.token == "h") {
+      let hour = part.elapsed ? dateParts.elapsedHours : dateParts.hour;
+      if (use12HourClock && !part.elapsed) {
+        hour = hour % 12;
+        if (hour == 0) {
+          hour = 12;
+        }
+      }
+      return part.length > 1 ? this.pad(hour, part.length) : hour.toString();
+    }
+
+    if (part.token == "m") {
+      const isMinute =
+        part.elapsed ||
+        (previousToken != null && previousToken.token == "h") ||
+        (nextToken != null && nextToken.token == "s");
+      if (isMinute) {
+        const minute = part.elapsed ? dateParts.elapsedMinutes : dateParts.minute;
+        return part.length > 1 ? this.pad(minute, part.length) : minute.toString();
+      }
+
+      if (part.length == 1) {
+        return dateParts.month.toString();
+      }
+      if (part.length == 2) {
+        return this.pad(dateParts.month, 2);
+      }
+      if (part.length == 3) {
+        return SHORT_MONTH_NAMES[dateParts.month - 1];
+      }
+      if (part.length == 4) {
+        return LONG_MONTH_NAMES[dateParts.month - 1];
+      }
+      return SHORT_MONTH_NAMES[dateParts.month - 1].charAt(0);
+    }
+
+    if (part.token == "s") {
+      const second = part.elapsed ? dateParts.elapsedSeconds : dateParts.second;
+      return part.length > 1 ? this.pad(second, part.length) : second.toString();
+    }
+
+    return part.value;
+  }
+
+  private getExcelDateParts(serialValue: number): ExcelDateParts {
+    const wholeDays = Math.floor(serialValue);
+    const fraction = serialValue - wholeDays;
+    let days = wholeDays > 59 ? wholeDays - 1 : wholeDays;
+    let milliseconds = Math.round(fraction * MS_PER_DAY);
+
+    if (milliseconds >= MS_PER_DAY) {
+      days += Math.floor(milliseconds / MS_PER_DAY);
+      milliseconds = milliseconds % MS_PER_DAY;
+    }
+
+    const date = new Date(
+      Date.UTC(1899, 11, 31) + days * MS_PER_DAY + milliseconds
+    );
+
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate(),
+      hour: date.getUTCHours(),
+      minute: date.getUTCMinutes(),
+      second: date.getUTCSeconds(),
+      weekday: date.getUTCDay(),
+      elapsedHours: Math.floor(serialValue * 24),
+      elapsedMinutes: Math.floor(serialValue * 24 * 60),
+      elapsedSeconds: Math.floor(serialValue * 24 * 60 * 60),
+    };
+  }
+
+  private pad(value: number, length: number): string {
+    let result = value.toString();
+    while (result.length < length) {
+      result = "0" + result;
+    }
+    return result;
   }
 
   private replaceSpecialWrap(text: string): string {

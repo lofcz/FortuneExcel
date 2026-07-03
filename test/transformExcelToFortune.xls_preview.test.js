@@ -5,6 +5,7 @@ const path = require("node:path");
 const React = require("react");
 const ReactDOMClient = require("react-dom/client");
 const { JSDOM } = require("jsdom");
+const ExcelJS = require("exceljs");
 
 const { transformExcelToFortune } = require("../dist/main.js");
 
@@ -58,11 +59,10 @@ const waitForDeferredSizing = () =>
 const getCell = (sheet, row, column) =>
   sheet.celldata.find((cell) => cell.r === row && cell.c === column);
 
-const loadFixtureIntoFortune = async () => {
-  const fileBuffer = await fs.readFile(fixturePath);
+const loadWorkbookBufferIntoFortune = async (fileBuffer, fileName) => {
   const file = new File(
     [fileBuffer],
-    "xls_preview.xlsx",
+    fileName,
     {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }
@@ -101,6 +101,11 @@ const loadFixtureIntoFortune = async () => {
     columnWidthCalls,
     rowHeightCalls,
   };
+};
+
+const loadFixtureIntoFortune = async () => {
+  const fileBuffer = await fs.readFile(fixturePath);
+  return loadWorkbookBufferIntoFortune(fileBuffer, "xls_preview.xlsx");
 };
 
 test("transformExcelToFortune converts xls_preview.xlsx into Fortune sheets", async () => {
@@ -169,6 +174,37 @@ test("transformExcelToFortune converts xls_preview.xlsx into Fortune sheets", as
 
   assert.equal(rowHeightCalls.length, 1);
   assert.deepEqual(rowHeightCalls[0], [sheet.config.rowlen || {}, { id: sheet.id }]);
+});
+
+test("transformExcelToFortune formats numeric serial values with date formats as dates", async () => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Dates");
+
+  worksheet.getCell("A1").value = 46205;
+  worksheet.getCell("A1").numFmt = "yyyy/m/d";
+  worksheet.getCell("B1").value = 46205;
+  worksheet.getCell("B1").numFmt = "0.0";
+
+  const workbookBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
+  const { setSheetsCalls } = await loadWorkbookBufferIntoFortune(
+    workbookBuffer,
+    "dates.xlsx"
+  );
+  const [[sheet]] = setSheetsCalls;
+
+  const a1 = getCell(sheet, 0, 0);
+  assert.ok(a1);
+  assert.equal(a1.v.v, "46205");
+  assert.equal(a1.v.m, "2026/7/2");
+  assert.equal(a1.v.ct.fa, "yyyy/m/d");
+  assert.equal(a1.v.ct.t, "d");
+
+  const b1 = getCell(sheet, 0, 1);
+  assert.ok(b1);
+  assert.equal(b1.v.v, "46205");
+  assert.equal(b1.v.m, undefined);
+  assert.equal(b1.v.ct.fa, "0.0");
+  assert.equal(b1.v.ct.t, "n");
 });
 
 test("converted xls_preview.xlsx sheets can be mounted in Workbook", async () => {
