@@ -10,6 +10,11 @@ const ExcelJS = require("exceljs");
 const { transformExcelToFortune } = require("../dist/main.js");
 
 const fixturePath = path.resolve(__dirname, "fixtures", "xls_preview.xlsx");
+const drawingObjectsFixturePath = path.resolve(
+  __dirname,
+  "fixtures",
+  "issue17336_drawing_objects.xlsx"
+);
 
 const toBuffer = (part) => {
   if (Buffer.isBuffer(part)) {
@@ -176,6 +181,52 @@ test("transformExcelToFortune converts xls_preview.xlsx into Fortune sheets", as
   assert.deepEqual(rowHeightCalls[0], [sheet.config.rowlen || {}, { id: sheet.id }]);
 });
 
+test("transformExcelToFortune keeps one-cell anchored drawing objects visible", async () => {
+  const fileBuffer = await fs.readFile(drawingObjectsFixturePath);
+  const { setSheetsCalls } = await loadWorkbookBufferIntoFortune(
+    fileBuffer,
+    "issue17336_drawing_objects.xlsx"
+  );
+  const [[sheet]] = setSheetsCalls;
+  const images = sheet.images || [];
+
+  assert.equal(images.length, 3);
+
+  const pngImage = images.find((image) =>
+    image.src.startsWith("data:image/png;base64,")
+  );
+  assert.ok(pngImage);
+  assert.equal(pngImage.type, "2");
+  assert.equal(pngImage.left, 340);
+  assert.equal(pngImage.top, 11);
+  assert.equal(pngImage.width, 100);
+  assert.equal(pngImage.height, 114);
+  assert.equal(pngImage.fromCol, 3);
+  assert.equal(pngImage.fromRow, 0);
+  assert.equal(pngImage.toCol, 4);
+  assert.equal(pngImage.toRow, 5);
+
+  const svgImages = images.filter((image) =>
+    image.src.startsWith("data:image/svg+xml")
+  );
+  assert.equal(svgImages.length, 2);
+  assert.ok(svgImages.every((image) => image.width > 0 && image.height > 0));
+
+  const chartImage = svgImages.find((image) => image.width === 600);
+  assert.ok(chartImage);
+  const chartSvg = decodeURIComponent(chartImage.src.split(",")[1]);
+  assert.match(chartSvg, /<svg /);
+  assert.match(chartSvg, /#4472C4/);
+
+  const shapeImage = svgImages.find((image) => image.width === 587);
+  assert.ok(shapeImage);
+  const shapeSvg = decodeURIComponent(shapeImage.src.split(",")[1]);
+  assert.match(shapeSvg, /<rect /);
+  assert.match(shapeSvg, /<polygon /);
+  assert.match(shapeSvg, /<ellipse /);
+  assert.match(shapeSvg, /#CFE2F3/);
+});
+
 test("transformExcelToFortune formats numeric serial values with date formats as dates", async () => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Dates");
@@ -245,12 +296,15 @@ test("converted xls_preview.xlsx sheets can be mounted in Workbook", async () =>
   global.DOMParser = dom.window.DOMParser;
 
   const root = ReactDOMClient.createRoot(document.getElementById("root"));
+  const originalGetContext = dom.window.HTMLCanvasElement.prototype.getContext;
+  dom.window.HTMLCanvasElement.prototype.getContext = () => null;
 
   try {
     root.render(React.createElement(Workbook, { data: sheets }));
     await new Promise((resolve) => setTimeout(resolve, 50));
   } finally {
     root.unmount();
+    dom.window.HTMLCanvasElement.prototype.getContext = originalGetContext;
     dom.window.close();
     global.window = previousGlobals.window;
     global.document = previousGlobals.document;
