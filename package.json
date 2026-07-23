@@ -1,6 +1,6 @@
 {
   "name": "@lofcz/fortune-excel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An Excel import/export library for FortuneSheet / ProsperaSheet",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
