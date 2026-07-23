@@ -362,38 +362,43 @@ export class FortuneFile {
       }
       y_n = y_n + fromRowOff;
 
-      if (toCol >= this.columnWidthSet.length) {
-        this.extendArray(
-          toCol,
-          this.columnWidthSet,
-          defaultColWidth,
-          colhidden,
-          columnlen
-        );
-      }
-      if (toCol == 0) {
-        cx_n = 0;
-      } else {
-        cx_n = this.columnWidthSet[toCol - 1];
-      }
-      cx_n = cx_n + toColOff - x_n;
+      if (toCol != null && toRow != null) {
+        if (toCol >= this.columnWidthSet.length) {
+          this.extendArray(
+            toCol,
+            this.columnWidthSet,
+            defaultColWidth,
+            colhidden,
+            columnlen
+          );
+        }
+        if (toCol == 0) {
+          cx_n = 0;
+        } else {
+          cx_n = this.columnWidthSet[toCol - 1];
+        }
+        cx_n = cx_n + toColOff - x_n;
 
-      if (toRow >= this.rowHeightSet.length) {
-        this.extendArray(
-          toRow,
-          this.rowHeightSet,
-          defaultRowHeight,
-          rowhidden,
-          rowlen
-        );
-      }
-      if (toRow == 0) {
-        cy_n = 0;
+        if (toRow >= this.rowHeightSet.length) {
+          this.extendArray(
+            toRow,
+            this.rowHeightSet,
+            defaultRowHeight,
+            rowhidden,
+            rowlen
+          );
+        }
+        if (toRow == 0) {
+          cy_n = 0;
+        } else {
+          cy_n = this.rowHeightSet[toRow - 1];
+        }
+        cy_n = cy_n + toRowOff - y_n;
       } else {
-        cy_n = this.rowHeightSet[toRow - 1];
+        // oneCellAnchor: use pre-calculated dimensions from xdr:ext
+        cx_n = imageObject.originWidth || 0;
+        cy_n = imageObject.originHeight || 0;
       }
-
-      cy_n = cy_n + toRowOff - y_n;
 
       imageObject.originWidth = cx_n;
       imageObject.originHeight = cy_n;
@@ -432,7 +437,7 @@ export class FortuneFile {
         if (relationshipId == rid) {
           let target = getXmlAttibute(attrList, "Target", null);
           if (target != null) {
-            return target.replace(/\.\.\//g, "");
+            return target.replace(/\.\.\//g, "").replace(/^\//, "");
           }
         }
       }

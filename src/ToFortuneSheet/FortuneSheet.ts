@@ -368,7 +368,9 @@ export class FortuneSheet extends FortuneSheetBase {
         continue;
       }
 
-      let rembed = getXmlAttibute(blips[0].attributeList, "r:embed", null);
+      let rembed =
+        getXmlAttibute(blips[0].attributeList, "r:embed", null) ||
+        getXmlAttibute(blips[0].attributeList, "ns2:embed", null);
       let imageObject = this.getBase64ByRid(rembed, drawingRelsFile);
       if (imageObject == null) {
         continue;

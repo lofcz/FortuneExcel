@@ -89,6 +89,7 @@ Fork of [`@corbe30/fortune-excel`](https://github.com/Corbe30/FortuneExcel) with
 
 - [@Corbe30](https://github.com/Corbe30) — upstream FortuneExcel
 - [@jlsi](https://github.com/jlsi) — date formatting + drawing object import
+- [@midship-dev](https://github.com/midship-dev) — oneCellAnchor / absolute path / `ns2:embed` image fixes
 - [@lofcz](https://github.com/lofcz) — this fork
 
 Developers of [FortuneSheetExcel](https://github.com/zenmrp/FortuneSheetExcel):
