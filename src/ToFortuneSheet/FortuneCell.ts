@@ -912,7 +912,14 @@ export class FortuneSheetCelldata extends FortuneSheetCelldataBase {
         cellValue.v = `${value}`;
       } else {
         value = escapeCharacter(value);
-        cellValue.v = value;
+        // Generators (openpyxl/XlsxWriter) often emit `<v></v>` for formulas that
+        // were never calculated. An empty string would render as a blank cell and
+        // block host recalculation — leave `v` unset so `f` can be evaluated.
+        if (cellValue.f != null && (value == null || value === "")) {
+          // keep v undefined
+        } else {
+          cellValue.v = value;
+        }
       }
     }
 

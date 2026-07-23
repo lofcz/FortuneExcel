@@ -5,7 +5,7 @@ import {
   exportToolBarItem,
   importToolBarItem,
   FortuneExcelHelper,
-} from "@corbe30/fortune-excel";
+} from "@lofcz/fortune-excel";
 
 export const PluginExample = () => {
   const [key, setKey] = React.useState(0);

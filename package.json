@@ -1,24 +1,29 @@
 {
-  "name": "@corbe30/fortune-excel",
-  "workspaces": [
-    "src/*"
-  ],
-  "version": "2.3.3",
-  "description": "An Excel import/export import library for FortuneSheet",
+  "name": "@lofcz/fortune-excel",
+  "version": "1.0.0",
+  "description": "An Excel import/export library for FortuneSheet / ProsperaSheet",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
+  "files": [
+    "dist",
+    "fortuneExcelLogo.png"
+  ],
   "keywords": [
     "fortunesheet",
+    "prosperasheet",
     "spreadsheet",
     "excel"
   ],
   "author": "shashankc1705@gmail.com",
-  "homepage": "https://corbe30.github.io/FortuneExcel",
+  "homepage": "https://github.com/lofcz/FortuneExcel#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Corbe30/FortuneExcel.git"
+    "url": "git+https://github.com/lofcz/FortuneExcel.git"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.26.3",
@@ -48,9 +53,10 @@
   },
   "scripts": {
     "prepare": "tsc",
-    "test": "npm run prepare && node --test test/transformExcelToFortune.xls_preview.test.js",
+    "build": "tsc",
+    "test": "bun run prepare && node --test ./test/transformExcelToFortune.xls_preview.test.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "bun@1.4.0"
 }

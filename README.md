@@ -7,30 +7,30 @@
 <div align="center">
 
 <p>
-  <a href="http://npmjs.com/package/@corbe30/fortune-excel" alt="fortuneExcel on npm">
-    <img src="https://img.shields.io/npm/v/@corbe30/fortune-excel" />
-  </a> 
-  <a href="http://npmjs.com/package/@corbe30/fortune-excel" alt="fortuneExcel downloads">
-    <img src="https://img.shields.io/npm/d18m/%40corbe30%2Ffortune-excel" />
+  <a href="https://www.npmjs.com/package/@lofcz/fortune-excel" alt="fortuneExcel on npm">
+    <img src="https://img.shields.io/npm/v/@lofcz/fortune-excel" />
   </a>
-  <a href="https://corbe30.github.io/FortuneExcel/" alt="fortuneExcel storybok">
-    <img src="https://img.shields.io/badge/storybook-FF4785" />
+  <a href="https://www.npmjs.com/package/@lofcz/fortune-excel" alt="fortuneExcel downloads">
+    <img src="https://img.shields.io/npm/d18m/%40lofcz%2Ffortune-excel" />
   </a>
 </p>
 
 </div>
 
+Fork of [`@corbe30/fortune-excel`](https://github.com/Corbe30/FortuneExcel) with Bun tooling, trusted npm provenance publishing, and merged improvements from [jlsi/FortuneExcel](https://github.com/jlsi/FortuneExcel) (Excel date display formatting, drawing/chart/shape import).
+
 ## Usage
 
 1. Install the package:
     ```js
-    npm i @corbe30/fortune-excel
+    bun add @lofcz/fortune-excel
+    # or: npm i @lofcz/fortune-excel
     ```
 
-2. Import/export toolbar item ([code example](https://github.com/Corbe30/FortuneExcel/tree/main/src/stories/Plugin.tsx))
+2. Import/export toolbar item ([code example](https://github.com/lofcz/FortuneExcel/tree/main/src/stories/Plugin.tsx))
     > Note: `<FortuneExcelHelper />` is a hidden component.
     ```js
-    import { FortuneExcelHelper, importToolBarItem, exportToolBarItem } from "@corbe30/fortune-excel";
+    import { FortuneExcelHelper, importToolBarItem, exportToolBarItem } from "@lofcz/fortune-excel";
 
     function App() {
       const sheetRef = useRef();
@@ -57,9 +57,9 @@
     }
     ```
 
-3. Programmatic import/export ([code example](https://github.com/Corbe30/FortuneExcel/tree/main/src/stories/Manual.tsx))
+3. Programmatic import/export ([code example](https://github.com/lofcz/FortuneExcel/tree/main/src/stories/Manual.tsx))
     ```js
-    import { transformFortuneToExcel } from "@corbe30/fortune-excel";
+    import { transformFortuneToExcel } from "@lofcz/fortune-excel";
 
     const manualExport = async () => {
       const exportedFile = await transformFortuneToExcel(
@@ -73,8 +73,8 @@
     <button onClick={manualExport}>Export</button>
     ```
     ```js
-    import { transformExcelToFortune } from "@corbe30/fortune-excel";
-     
+    import { transformExcelToFortune } from "@lofcz/fortune-excel";
+
     const manualImport = async (event) => {
       await transformExcelToFortune(
         event.target.files[0], // file type (csv/xlsx) is automatically identified
@@ -87,7 +87,9 @@
 
 ## Authors and acknowledgment
 
-- [@Corbe30](https://github.com/Corbe30)
+- [@Corbe30](https://github.com/Corbe30) — upstream FortuneExcel
+- [@jlsi](https://github.com/jlsi) — date formatting + drawing object import
+- [@lofcz](https://github.com/lofcz) — this fork
 
 Developers of [FortuneSheetExcel](https://github.com/zenmrp/FortuneSheetExcel):
 - [@wbfsa](https://github.com/wbfsa)
@@ -100,10 +102,11 @@ Export support:
 - [Orleans9](https://blog.csdn.net/zinchliang) - [article](https://blog.csdn.net/zinchliang/article/details/120262185)
 
 ## Contribution
-1. Install node v24
-3. `npm run prepare`
-4. `npm run build-storybook`
-5. `npm run storybook`
+
+1. Install [Bun](https://bun.sh)
+2. `bun install`
+3. `bun run prepare`
+4. `bun run storybook`
 
 ## License
 

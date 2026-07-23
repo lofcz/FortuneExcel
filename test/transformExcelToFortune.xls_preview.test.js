@@ -258,6 +258,28 @@ test("transformExcelToFortune formats numeric serial values with date formats as
   assert.equal(b1.v.ct.t, "n");
 });
 
+test("transformExcelToFortune keeps formula text without empty cached values", async () => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Grades");
+
+  worksheet.getCell("A1").value = 1;
+  worksheet.getCell("A2").value = 3;
+  worksheet.getCell("A3").value = { formula: "AVERAGE(A1:A2)" };
+
+  const workbookBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
+  const { setSheetsCalls } = await loadWorkbookBufferIntoFortune(
+    workbookBuffer,
+    "formulas.xlsx"
+  );
+  const [[sheet]] = setSheetsCalls;
+
+  const a3 = getCell(sheet, 2, 0);
+  assert.ok(a3);
+  assert.equal(a3.v.f, "=AVERAGE(A1:A2)");
+  assert.equal(a3.v.v, undefined);
+  assert.equal(a3.v.m, undefined);
+});
+
 test("converted xls_preview.xlsx sheets can be mounted in Workbook", async () => {
   const { setSheetsCalls } = await loadFixtureIntoFortune();
   const [sheets] = setSheetsCalls;

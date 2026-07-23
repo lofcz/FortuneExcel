@@ -4,7 +4,7 @@ import "@fortune-sheet/react/dist/index.css";
 import {
   transformExcelToFortune,
   transformFortuneToExcel,
-} from "@corbe30/fortune-excel";
+} from "@lofcz/fortune-excel";
 
 const FloatingContainer = (props: any) => {
   const { children } = props;
