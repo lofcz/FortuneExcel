@@ -4,11 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: Release type
+        description: Release type (`current` publishes package.json as-is — use for first release)
         required: true
         default: patch
         type: choice
         options:
+          - current
           - patch
           - minor
           - major
@@ -46,7 +47,7 @@ jobs:
       - name: Run tests
         run: bun run test
 
-      - name: Bump package version
+      - name: Resolve package version
         id: version
         env:
           RELEASE_TYPE: ${{ github.event.inputs.release_type }}
@@ -64,20 +65,31 @@ jobs:
           const type = process.env.RELEASE_TYPE;
           const pkgPath = "package.json";
           const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-          const version = bumpVersion(pkg.version, type);
+          const version =
+            type === "current" ? pkg.version : bumpVersion(pkg.version, type);
+          const bumped = version !== pkg.version;
           pkg.version = version;
           fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
-          console.log(`Bumped @lofcz/fortune-excel to ${version}`);
+          fs.appendFileSync(
+            process.env.GITHUB_OUTPUT,
+            `version=${version}\nbumped=${bumped}\n`
+          );
+          console.log(
+            bumped
+              ? `Bumped @lofcz/fortune-excel to ${version}`
+              : `Publishing @lofcz/fortune-excel@${version} (unchanged)`
+          );
           EOF
 
       - name: Commit release version and create tag
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json
-          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          if [ "${{ steps.version.outputs.bumped }}" = "true" ]; then
+            git add package.json
+            git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          fi
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
 
       - name: Publish @lofcz/fortune-excel
