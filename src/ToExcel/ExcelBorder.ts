@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import ExcelJS from "@protobi/exceljs";
 import { IBorderInfo, IBorderInfoCompute, IBorderSide } from "../common/ICommon";
 import { getObjType, rgb2hex } from "../common/method";
 

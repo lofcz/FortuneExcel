@@ -1,7 +1,7 @@
 import { columeHeader_word, columeHeader_word_index } from "./constant";
 import { IfortuneSheetSelection } from "../ToFortuneSheet/IFortune";
 import { IattributeList, stringToNum } from "./ICommon";
-import ExcelJS from "exceljs";
+import ExcelJS from "@protobi/exceljs";
 
 export function getRangetxt(range: IfortuneSheetSelection, sheettxt: string) {
   let row0 = range["row"][0],

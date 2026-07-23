@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import ExcelJS from "@protobi/exceljs";
 import * as fileSaver from "file-saver";
 import { setStyleAndValue } from "./ExcelStyle";
 import { setMerge } from "../common/method";

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import ExcelJS, { CellHyperlinkValue, CellValue } from "exceljs";
+import ExcelJS, { CellHyperlinkValue, CellValue } from "@protobi/exceljs";
 import { fillConvert, fontConvert, alignmentConvert } from "./ExcelConvert";
 
 const isTime = (d: string) => {
@@ -62,7 +62,7 @@ var setStyleAndValue = function (table: any, worksheet: ExcelJS.Worksheet) {
             tooltip: cell.v,
           };
         }
-        // will not work in Google Sheets but will work in excel (open issue in exceljs)
+        // will not work in Google Sheets but will work in excel (open issue in ExcelJS)
         else if (
           hlData.linkType === "cellrange" ||
           hlData.linkType === "sheet"

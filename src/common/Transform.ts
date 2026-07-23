@@ -3,7 +3,7 @@ import { FortuneFile } from "../ToFortuneSheet/FortuneFile";
 import { HandleZip } from "../ToFortuneSheet/HandleZip";
 import { exportSheetExcel } from "../ToExcel/ExcelFile";
 import { IFileType } from "./ICommon";
-import * as ExcelJS from "exceljs";
+import * as ExcelJS from "@protobi/exceljs";
 
 const convertCsvToExcel = async (file: File): Promise<ArrayBuffer> => {
     const csvText = await file.text();

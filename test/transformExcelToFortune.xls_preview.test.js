@@ -5,7 +5,7 @@ const path = require("node:path");
 const React = require("react");
 const ReactDOMClient = require("react-dom/client");
 const { JSDOM } = require("jsdom");
-const ExcelJS = require("exceljs");
+const ExcelJS = require("@protobi/exceljs");
 
 const { transformExcelToFortune } = require("../dist/main.js");
 

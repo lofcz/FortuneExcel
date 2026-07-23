@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import ExcelJS from "@protobi/exceljs";
 import { ALIGNMENT_DEFAULT } from "../common/constant";
 import { rgb2hex } from "../common/method";
 
