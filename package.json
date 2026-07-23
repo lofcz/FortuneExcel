@@ -58,5 +58,5 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
-  "packageManager": "bun@1.4.0"
+  "packageManager": "bun@1.4.0-canary"
 }
